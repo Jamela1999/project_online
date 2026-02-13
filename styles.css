@@ -1,0 +1,75 @@
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Glassmorphism utilities */
+.glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Tab Transitions */
+.tab-content {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Printing styles for the "reports" feel */
+@media print {
+    body {
+        background: white;
+    }
+
+    header,
+    footer {
+        display: none;
+    }
+
+    #app-container {
+        box-shadow: none;
+        border: none;
+    }
+}
+
+@keyframes highlightRow {
+    0% {
+        background-color: rgba(14, 165, 233, 0.2);
+    }
+
+    100% {
+        background-color: transparent;
+    }
+}
+
+.row-highlight {
+    animation: highlightRow 1s ease-out forwards;
+}
