@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Schedule — 4 Weeks</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ═══════════════════════════════════════
+   NORDIC / SCANDINAVIAN DESIGN SYSTEM
+   ═══════════════════════════════════════ */
+        :root {
+            --bg: #f5f5f0;
+            --surface: #ffffff;
+            --surface2: #fafaf7;
+            --border: #e8e6e1;
+            --border2: #d5d3ce;
+            --text: #2c2c2c;
+            --text-mid: #6b6b6b;
+            --text-lt: #9e9e9e;
+            --accent: #3d3d3d;
+            --shadow: rgba(0, 0, 0, .04);
+
+            /* Category colors — muted, Scandinavian palette */
+            --c-intern: #5b8fb9;
+            --c-course: #6b9b76;
+            --c-french: #d4975a;
+            --c-gym: #c47a8a;
+            --c-dentist: #c25d5d;
+            --c-writing: #8b72b0;
+            --c-tutor: #c9a84c;
+            --c-cram: #5bab8b;
+            --c-buffer: #a0a0a0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Top bar ── */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 28px 36px 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .topbar h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            letter-spacing: -.02em;
+            color: var(--text);
+        }
+
+        .topbar .subtitle {
+            font-size: .82rem;
+            color: var(--text-lt);
+            font-weight: 400;
+        }
+
+        .week-select {
+            appearance: none;
+            -webkit-appearance: none;
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 8px 36px 8px 14px;
+            border-radius: 8px;
+            font-size: .85rem;
+            font-family: inherit;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%239e9e9e' d='M2.5 4l2.5 2.5L7.5 4'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 10px;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .week-select:hover {
+            border-color: var(--border2);
+        }
+
+        .week-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(60, 60, 60, .06);
+        }
+
+        /* ── Legend ── */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 0 36px 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: .72rem;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-mid);
+            letter-spacing: .01em;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* ── Week card ── */
+        .gantt-container {
+            padding: 0 36px 36px;
+        }
+
+        .week-card {
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: 0 1px 3px var(--shadow), 0 4px 16px var(--shadow);
+        }
+
+        .week-card-header {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: .9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface2);
+        }
+
+        .week-card-header span {
+            color: var(--text-lt);
+            font-weight: 400;
+            font-size: .78rem;
+        }
+
+        .gantt-scroll {
+            overflow-x: auto;
+            padding: 8px 12px 12px;
+        }
+
+        .gantt {
+            display: grid;
+            min-width: 920px;
+            user-select: none;
+        }
+
+        .time-header {
+            font-size: .6rem;
+            color: var(--text-lt);
+            text-align: center;
+            padding: 4px 0 8px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 500;
+            letter-spacing: .02em;
+        }
+
+        .day-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 2px;
+            border-bottom: 1px solid var(--border);
+            font-size: .78rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .day-label .date-num {
+            font-size: .62rem;
+            color: var(--text-lt);
+            font-weight: 400;
+            margin-top: 1px;
+        }
+
+        .day-row {
+            grid-column: 2 / -1;
+            position: relative;
+            height: 50px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+        }
+
+        .hour-cell {
+            flex: 1;
+            border-right: 1px solid rgba(0, 0, 0, .04);
+            cursor: pointer;
+            transition: background .15s;
+        }
+
+        .hour-cell:last-child {
+            border-right: none;
+        }
+
+        .hour-cell:hover {
+            background: rgba(0, 0, 0, .018);
+        }
+
+        /* ── Events ── */
+        .event {
+            position: absolute;
+            top: 4px;
+            height: 42px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .68rem;
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 0 14px;
+            cursor: grab;
+            z-index: 2;
+            transition: box-shadow .15s;
+            letter-spacing: .01em;
+        }
+
+        .event:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .1);
+            z-index: 20;
+        }
+
+        .event.dragging {
+            cursor: grabbing;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .15);
+            z-index: 100;
+            opacity: .92;
+        }
+
+        /* Resize handles */
+        .event .resize-left,
+        .event .resize-right {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 8px;
+            cursor: ew-resize;
+            z-index: 5;
+        }
+
+        .event .resize-left {
+            left: 0;
+            border-radius: 6px 0 0 6px;
+        }
+
+        .event .resize-right {
+            right: 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .event:hover .resize-left,
+        .event:hover .resize-right {
+            background: rgba(0, 0, 0, .08);
+        }
+
+        /* Tooltip */
+        .event .tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: .68rem;
+            font-weight: 400;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+            z-index: 200;
+            pointer-events: none;
+        }
+
+        .event:hover .tooltip {
+            display: block;
+        }
+
+        .event.dragging .tooltip {
+            display: block;
+        }
+
+        /* Delete button */
+        .event .delete-btn {
+            display: none;
+            position: absolute;
+            top: 3px;
+            right: 12px;
+            background: rgba(0, 0, 0, .12);
+            border: none;
+            color: var(--text);
+            font-size: .6rem;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .event:hover .delete-btn {
+            display: flex;
+        }
+
+        /* Color classes — Nordic muted tones */
+        .ev-intern {
+            background: #dce9f3;
+            color: #3a6d94;
+        }
+
+        .ev-course {
+            background: #ddeade;
+            color: #3f6e47;
+        }
+
+        .ev-french {
+            background: #f5e6d3;
+            color: #9a6a2f;
+        }
+
+        .ev-gym {
+            background: #f3dce1;
+            color: #8e4558;
+        }
+
+        .ev-dentist {
+            background: #f3d5d5;
+            color: #993a3a;
+        }
+
+        .ev-writing {
+            background: #e5ddf0;
+            color: #5e4a80;
+        }
+
+        .ev-tutor {
+            background: #f2eacc;
+            color: #7a6520;
+        }
+
+        .ev-cram {
+            background: #d3ece2;
+            color: #327a5d;
+        }
+
+        .ev-buffer {
+            background: #eaeaea;
+            color: #777;
+        }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .2);
+            backdrop-filter: blur(4px);
+            z-index: 500;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px 30px;
+            width: 380px;
+            max-width: 92vw;
+            box-shadow: 0 12px 48px rgba(0, 0, 0, .1);
+            animation: modalIn .25s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px) scale(.98);
+            }
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: -.01em;
+        }
+
+        .modal label {
+            display: block;
+            font-size: .72rem;
+            font-weight: 500;
+            color: var(--text-lt);
+            margin-bottom: 4px;
+            margin-top: 14px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+        .modal input,
+        .modal select {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 9px 12px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: .85rem;
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        .modal input:focus,
+        .modal select:focus {
+            border-color: var(--accent);
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .color-swatch {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2.5px solid transparent;
+            transition: transform .12s, border-color .15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .55rem;
+            font-weight: 600;
+            color: rgba(0, 0, 0, .55);
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.06);
+        }
+
+        .color-swatch.selected {
+            border-color: var(--text);
+            transform: scale(1.08);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 22px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            font-family: inherit;
+            font-size: .85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background .15s;
+        }
+
+        .btn-cancel {
+            background: var(--surface2);
+            color: var(--text-mid);
+            border: 1px solid var(--border) !important;
+        }
+
+        .btn-cancel:hover {
+            background: #f0efea;
+        }
+
+        .btn-add {
+            background: var(--text);
+            color: #fff;
+        }
+
+        .btn-add:hover {
+            background: #1a1a1a;
+        }
+
+        .time-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .time-row>div {
+            flex: 1;
+        }
+
+        /* ── Drag time indicator ── */
+        .drag-time-indicator {
+            position: fixed;
+            background: var(--text);
+            color: #fff;
+            font-size: .7rem;
+            font-weight: 500;
+            padding: 3px 8px;
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 300;
+            display: none;
+            white-space: nowrap;
+            font-family: 'Inter', sans-serif;
+        }
+
+        @media (max-width:768px) {
+            .topbar {
+                padding: 20px 18px 12px;
+            }
+
+            .legend {
+                padding: 0 18px 14px;
+            }
+
+            .gantt-container {
+                padding: 0 14px 24px;
+            }
+
+            .topbar h1 {
+                font-size: 1.15rem;
+            }
+
+            .gantt {
+                min-width: 750px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="topbar-left">
+            <h1>Weekly Schedule</h1>
+            <span class="subtitle">Feb 23 — Mar 22, 2026</span>
+        </div>
+        <select class="week-select" id="weekSelect">
+            <option value="0">Week 1</option>
+            <option value="1">Week 2</option>
+            <option value="2">Week 3</option>
+            <option value="3">Week 4</option>
+        </select>
+    </div>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="gantt-container">
+        <div class="week-card">
+            <div class="week-card-header" id="weekCardHeader"></div>
+            <div class="gantt-scroll" id="ganttScroll">
+                <div class="gantt" id="gantt"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add-event modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h3>Add Event</h3>
+            <label>Name</label>
+            <input type="text" id="modalName" placeholder="e.g. Meeting" />
+            <div class="time-row">
+                <div>
+                    <label>Start</label>
+                    <select id="modalStart"></select>
+                </div>
+                <div>
+                    <label>End</label>
+                    <select id="modalEnd"></select>
+                </div>
+            </div>
+            <label>Color</label>
+            <div class="color-grid" id="colorGrid"></div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="btnCancel">Cancel</button>
+                <button class="btn-add" id="btnAdd">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Drag time floating indicator -->
+    <div class="drag-time-indicator" id="dragIndicator"></div>
+
+    <script>
+        /* ═══════════════════════════════════════
+           DATA
+           ═══════════════════════════════════════ */
+        const categories = [
+            { key: 'intern', label: 'Internship', color: 'var(--c-intern)', bg: '#dce9f3' },
+            { key: 'course', label: 'Course', color: 'var(--c-course)', bg: '#ddeade' },
+            { key: 'french', label: 'French Class', color: 'var(--c-french)', bg: '#f5e6d3' },
+            { key: 'gym', label: 'Gym', color: 'var(--c-gym)', bg: '#f3dce1' },
+            { key: 'dentist', label: 'Dentist', color: 'var(--c-dentist)', bg: '#f3d5d5' },
+            { key: 'writing', label: 'Writing / Prep', color: 'var(--c-writing)', bg: '#e5ddf0' },
+            { key: 'tutor', label: 'Tutoring', color: 'var(--c-tutor)', bg: '#f2eacc' },
+            { key: 'cram', label: 'Cram School', color: 'var(--c-cram)', bg: '#d3ece2' },
+            { key: 'buffer', label: 'Commute / Buffer', color: 'var(--c-buffer)', bg: '#eaeaea' },
+        ];
+
+        const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const HOUR_START = 5;
+        const HOUR_COUNT = 20; // 5:00 → 0:00 (next day 1:00 = col 20 edge)
+        const SNAP = 0.5;      // 30-min snap
+
+        function displayHours() {
+            const hrs = [];
+            for (let i = 0; i < HOUR_COUNT; i++) hrs.push((HOUR_START + i) % 24);
+            return hrs;
+        }
+        const HOURS = displayHours();
+
+        function hourToOffset(h) {
+            let m = h < HOUR_START ? h + 24 : h;
+            return m - HOUR_START;
+        }
+        function offsetToHour(off) {
+            return (HOUR_START + off) % 24;
+        }
+        function fmtTime(t) {
+            const h = ((Math.floor(t) % 24) + 24) % 24;
+            const m = Math.round((t - Math.floor(t)) * 60);
+            return `${h}:${m.toString().padStart(2, '0')}`;
+        }
+        function fmtTimeMapped(mapped) {
+            const h = mapped % 24;
+            const m = Math.round((mapped - Math.floor(mapped)) * 60);
+            return `${Math.floor(h)}:${m.toString().padStart(2, '0')}`;
+        }
+
+        // Week start dates
+        const weekStarts = [
+            new Date(2026, 1, 23), new Date(2026, 2, 2),
+            new Date(2026, 2, 9), new Date(2026, 2, 16),
+        ];
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        function fmtDate(d) { return `${monthNames[d.getMonth()]} ${d.getDate()}`; }
+
+        // Default events
+        function defaultEvents(wi) {
+            const ev = [];
+            const p = (d, s, e, c, l) => ev.push({ day: d, start: s, end: e, cls: c, label: l, id: crypto.randomUUID() });
+            // Mon
+            p(1, 9, 10, 'buffer', 'Commute'); p(1, 10, 19, 'intern', 'Internship');
+            p(1, 19, 20, 'buffer', 'Dinner'); p(1, 21, 23, 'writing', 'Writing / Prep');
+            // Tue
+            p(2, 9, 10, 'buffer', 'Commute'); p(2, 10, 19, 'intern', 'Internship');
+            p(2, 19, 20, 'buffer', 'Dinner'); p(2, 21, 23, 'writing', 'Writing / Prep');
+            // Wed
+            if (wi % 2 === 0) { p(3, 14, 15, 'buffer', 'Commute'); p(3, 15, 16, 'dentist', 'Dentist'); p(3, 16, 17, 'buffer', 'Buffer'); }
+            p(3, 17, 18, 'gym', 'Gym'); p(3, 18, 19, 'buffer', 'Dinner');
+            p(3, 19, 22, 'french', 'French Class');
+            // Thu
+            p(4, 9, 10, 'buffer', 'Commute'); p(4, 10, 19, 'intern', 'Internship');
+            p(4, 19, 20, 'buffer', 'Dinner'); p(4, 20, 21, 'tutor', 'Tutoring');
+            p(4, 21, 23, 'writing', 'Writing / Prep');
+            // Fri
+            p(5, 8, 9, 'buffer', 'Commute'); p(5, 9, 16, 'course', 'Course');
+            p(5, 16, 18, 'writing', 'Writing / Prep');
+            // Sat
+            p(6, 10, 12, 'writing', 'Writing / Prep'); p(6, 14, 18, 'writing', 'Writing / Prep');
+            p(6, 20, 21, 'tutor', 'Tutoring');
+            // Sun
+            p(7, 11.5, 12.5, 'buffer', 'Commute'); p(7, 12.5, 15, 'cram', 'Cram School');
+            p(7, 15, 16, 'buffer', 'Buffer'); p(7, 16, 18, 'writing', 'Writing / Prep');
+            p(7, 20, 21, 'tutor', 'Tutoring');
+            return ev;
+        }
+
+        let weekEvents = [];
+        const STORAGE_KEY = 'schedule_4week_v3';
+        function loadData() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) { try { weekEvents = JSON.parse(raw); return; } catch (e) { } }
+            weekEvents = [0, 1, 2, 3].map(i => defaultEvents(i));
+            saveData();
+        }
+        function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(weekEvents)); }
+
+        /* ═══════════════════════════════════════
+           LEGEND
+           ═══════════════════════════════════════ */
+        const legendEl = document.getElementById('legend');
+        categories.forEach(c => {
+            const item = document.createElement('div');
+            item.className = 'legend-item';
+            item.innerHTML = `<span class="legend-dot" style="background:${c.bg}; border:1px solid rgba(0,0,0,.1)"></span>${c.label}`;
+            legendEl.appendChild(item);
+        });
+
+        /* ═══════════════════════════════════════
+           RENDER
+           ═══════════════════════════════════════ */
+        let currentWeek = 0;
+        const ganttEl = document.getElementById('gantt');
+        const headerEl = document.getElementById('weekCardHeader');
+        const weekSelect = document.getElementById('weekSelect');
+
+        function render() {
+            const wi = currentWeek;
+            const ws = weekStarts[wi];
+            const we = new Date(ws); we.setDate(we.getDate() + 6);
+            headerEl.innerHTML = `Week ${wi + 1} <span>${fmtDate(ws)} — ${fmtDate(we)}</span>`;
+
+            ganttEl.innerHTML = '';
+            ganttEl.style.gridTemplateColumns = `56px repeat(${HOUR_COUNT}, 1fr)`;
+
+            // Time headers
+            const corner = document.createElement('div');
+            corner.className = 'time-header';
+            ganttEl.appendChild(corner);
+            HOURS.forEach(h => {
+                const th = document.createElement('div');
+                th.className = 'time-header';
+                th.textContent = `${h}:00`;
+                ganttEl.appendChild(th);
+            });
+
+            // Day rows
+            for (let d = 1; d <= 7; d++) {
+                const dateObj = new Date(ws);
+                dateObj.setDate(dateObj.getDate() + d - 1);
+
+                const dayLabel = document.createElement('div');
+                dayLabel.className = 'day-label';
+                dayLabel.innerHTML = `${dayLabels[d - 1]}<span class="date-num">${dateObj.getMonth() + 1}/${dateObj.getDate()}</span>`;
+                ganttEl.appendChild(dayLabel);
+
+                const row = document.createElement('div');
+                row.className = 'day-row';
+                row.dataset.day = d;
+
+                for (let i = 0; i < HOUR_COUNT; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'hour-cell';
+                    cell.addEventListener('click', () => openModal(d, i));
+                    row.appendChild(cell);
+                }
+
+                // Events
+                const dayEvents = weekEvents[wi].filter(e => e.day === d);
+                dayEvents.forEach(ev => {
+                    const offS = hourToOffset(ev.start);
+                    const offE = hourToOffset(ev.end);
+                    if (offS < 0 || offE <= offS || offS >= HOUR_COUNT) return;
+
+                    const el = document.createElement('div');
+                    el.className = `event ev-${ev.cls}`;
+                    el.style.left = `${(offS / HOUR_COUNT) * 100}%`;
+                    el.style.width = `${((offE - offS) / HOUR_COUNT) * 100}%`;
+                    el.dataset.id = ev.id;
+
+                    el.innerHTML = `
+        <span class="resize-left"></span>
+        <span class="event-label">${ev.label}</span>
+        <span class="tooltip">${ev.label}  ${fmtTime(ev.start)}–${fmtTime(ev.end)}</span>
+        <button class="delete-btn" title="Delete">✕</button>
+        <span class="resize-right"></span>
+      `;
+
+                    // Delete
+                    el.querySelector('.delete-btn').addEventListener('click', e => {
+                        e.stopPropagation();
+                        weekEvents[wi] = weekEvents[wi].filter(x => x.id !== ev.id);
+                        saveData(); render();
+                    });
+
+                    // Drag (move)
+                    setupDrag(el, ev, row);
+                    // Resize left
+                    setupResize(el.querySelector('.resize-left'), ev, 'left', row);
+                    // Resize right
+                    setupResize(el.querySelector('.resize-right'), ev, 'right', row);
+
+                    row.appendChild(el);
+                });
+
+                ganttEl.appendChild(row);
+            }
+        }
+
+        /* ═══════════════════════════════════════
+           DRAG TO MOVE
+           ═══════════════════════════════════════ */
+        const dragIndicator = document.getElementById('dragIndicator');
+
+        function setupDrag(el, ev, row) {
+            let startX, origStart, origEnd, rowWidth;
+
+            function onDown(e) {
+                if (e.target.classList.contains('resize-left') ||
+                    e.target.classList.contains('resize-right') ||
+                    e.target.classList.contains('delete-btn')) return;
+                e.preventDefault();
+                e.stopPropagation();
+                startX = e.clientX;
+                origStart = hourToOffset(ev.start);
+                origEnd = hourToOffset(ev.end);
+                rowWidth = row.getBoundingClientRect().width;
+                el.classList.add('dragging');
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
+            }
+
+            function onMove(e) {
+                const dx = e.clientX - startX;
+                const dOff = (dx / rowWidth) * HOUR_COUNT;
+                const dur = origEnd - origStart;
+                let newStart = Math.round((origStart + dOff) / SNAP) * SNAP;
+                newStart = Math.max(0, Math.min(HOUR_COUNT - dur, newStart));
+                const newEnd = newStart + dur;
+
+                el.style.left = `${(newStart / HOUR_COUNT) * 100}%`;
+                el.style.width = `${(dur / HOUR_COUNT) * 100}%`;
+
+                // Update tooltip
+                const mappedS = HOUR_START + newStart;
+                const mappedE = HOUR_START + newEnd;
+                el.querySelector('.tooltip').textContent = `${ev.label}  ${fmtTimeMapped(mappedS)}–${fmtTimeMapped(mappedE)}`;
+
+                el._pendingStart = newStart;
+                el._pendingEnd = newEnd;
+
+                // Floating indicator
+                dragIndicator.style.display = 'block';
+                dragIndicator.style.left = `${e.clientX + 12}px`;
+                dragIndicator.style.top = `${e.clientY - 28}px`;
+                dragIndicator.textContent = `${fmtTimeMapped(mappedS)} – ${fmtTimeMapped(mappedE)}`;
+            }
+
+            function onUp() {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+                el.classList.remove('dragging');
+                dragIndicator.style.display = 'none';
+                if (el._pendingStart !== undefined) {
+                    const ms = HOUR_START + el._pendingStart;
+                    const me = HOUR_START + el._pendingEnd;
+                    ev.start = ms >= 24 ? ms - 24 : ms;
+                    ev.end = me >= 24 ? me - 24 : me;
+                    delete el._pendingStart;
+                    delete el._pendingEnd;
+                    saveData(); render();
+                }
+            }
+
+            el.addEventListener('mousedown', onDown);
+        }
+
+        /* ═══════════════════════════════════════
+           DRAG TO RESIZE
+           ═══════════════════════════════════════ */
+        function setupResize(handle, ev, side, row) {
+            let startX, origOff, rowWidth, parentEl;
+
+            handle.addEventListener('mousedown', e => {
+                e.preventDefault();
+                e.stopPropagation();
+                startX = e.clientX;
+                rowWidth = row.getBoundingClientRect().width;
+                parentEl = handle.closest('.event');
+                parentEl.classList.add('dragging');
+
+                if (side === 'left') {
+                    origOff = hourToOffset(ev.start);
+                } else {
+                    origOff = hourToOffset(ev.end);
+                }
+
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
+            });
+
+            function onMove(e) {
+                const dx = e.clientX - startX;
+                const dOff = (dx / rowWidth) * HOUR_COUNT;
+                let newOff = Math.round((origOff + dOff) / SNAP) * SNAP;
+                newOff = Math.max(0, Math.min(HOUR_COUNT, newOff));
+
+                if (side === 'left') {
+                    const endOff = hourToOffset(ev.end);
+                    if (newOff >= endOff - SNAP) newOff = endOff - SNAP;
+                    if (newOff < 0) newOff = 0;
+                    parentEl.style.left = `${(newOff / HOUR_COUNT) * 100}%`;
+                    parentEl.style.width = `${((endOff - newOff) / HOUR_COUNT) * 100}%`;
+                    parentEl._pendingOff = newOff;
+
+                    const mappedS = HOUR_START + newOff;
+                    const mappedE = HOUR_START + endOff;
+                    parentEl.querySelector('.tooltip').textContent = `${ev.label}  ${fmtTimeMapped(mappedS)}–${fmtTimeMapped(mappedE)}`;
+                    dragIndicator.style.display = 'block';
+                    dragIndicator.style.left = `${e.clientX + 12}px`;
+                    dragIndicator.style.top = `${e.clientY - 28}px`;
+                    dragIndicator.textContent = `${fmtTimeMapped(mappedS)} – ${fmtTimeMapped(mappedE)}`;
+                } else {
+                    const startOff = hourToOffset(ev.start);
+                    if (newOff <= startOff + SNAP) newOff = startOff + SNAP;
+                    if (newOff > HOUR_COUNT) newOff = HOUR_COUNT;
+                    parentEl.style.width = `${((newOff - startOff) / HOUR_COUNT) * 100}%`;
+                    parentEl._pendingOff = newOff;
+
+                    const mappedS = HOUR_START + startOff;
+                    const mappedE = HOUR_START + newOff;
+                    parentEl.querySelector('.tooltip').textContent = `${ev.label}  ${fmtTimeMapped(mappedS)}–${fmtTimeMapped(mappedE)}`;
+                    dragIndicator.style.display = 'block';
+                    dragIndicator.style.left = `${e.clientX + 12}px`;
+                    dragIndicator.style.top = `${e.clientY - 28}px`;
+                    dragIndicator.textContent = `${fmtTimeMapped(mappedS)} – ${fmtTimeMapped(mappedE)}`;
+                }
+            }
+
+            function onUp() {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+                parentEl.classList.remove('dragging');
+                dragIndicator.style.display = 'none';
+
+                if (parentEl._pendingOff !== undefined) {
+                    const mapped = HOUR_START + parentEl._pendingOff;
+                    const realH = mapped >= 24 ? mapped - 24 : mapped;
+                    if (side === 'left') {
+                        ev.start = realH;
+                    } else {
+                        ev.end = realH;
+                    }
+                    delete parentEl._pendingOff;
+                    saveData(); render();
+                }
+            }
+        }
+
+        /* ═══════════════════════════════════════
+           WEEK SELECTOR
+           ═══════════════════════════════════════ */
+        weekSelect.addEventListener('change', () => {
+            currentWeek = parseInt(weekSelect.value);
+            render();
+        });
+
+        /* ═══════════════════════════════════════
+           ADD-EVENT MODAL
+           ═══════════════════════════════════════ */
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalName = document.getElementById('modalName');
+        const modalStart = document.getElementById('modalStart');
+        const modalEnd = document.getElementById('modalEnd');
+        const colorGrid = document.getElementById('colorGrid');
+        const btnCancel = document.getElementById('btnCancel');
+        const btnAdd = document.getElementById('btnAdd');
+
+        let modalDay = 1, selectedColor = 'intern';
+
+        function buildTimeOptions(sel) {
+            sel.innerHTML = '';
+            for (let t = 5; t <= 25; t += 0.5) {
+                const opt = document.createElement('option');
+                opt.value = t;
+                const hh = Math.floor(t) % 24;
+                const mm = (t % 1 === 0) ? '00' : '30';
+                opt.textContent = `${hh}:${mm}`;
+                sel.appendChild(opt);
+            }
+        }
+        buildTimeOptions(modalStart);
+        buildTimeOptions(modalEnd);
+
+        categories.forEach(c => {
+            const sw = document.createElement('div');
+            sw.className = 'color-swatch';
+            sw.style.background = c.bg;
+            sw.textContent = c.label;
+            sw.dataset.key = c.key;
+            sw.addEventListener('click', () => {
+                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                sw.classList.add('selected');
+                selectedColor = c.key;
+                modalName.value = c.label;
+            });
+            colorGrid.appendChild(sw);
+        });
+
+        function openModal(day, hourIndex) {
+            modalDay = day;
+            const mapped = HOUR_START + hourIndex;
+            modalStart.value = mapped;
+            modalEnd.value = Math.min(mapped + 1, 25);
+            modalName.value = '';
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+            const first = colorGrid.querySelector('.color-swatch');
+            if (first) { first.classList.add('selected'); selectedColor = first.dataset.key; }
+            modalOverlay.classList.add('open');
+            setTimeout(() => modalName.focus(), 80);
+        }
+        function closeModal() { modalOverlay.classList.remove('open'); }
+
+        btnCancel.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+        btnAdd.addEventListener('click', () => {
+            const s = parseFloat(modalStart.value);
+            const e = parseFloat(modalEnd.value);
+            if (e <= s) { alert('End time must be after start time.'); return; }
+            const name = modalName.value.trim() || categories.find(c => c.key === selectedColor)?.label || 'Event';
+            weekEvents[currentWeek].push({
+                day: modalDay,
+                start: s >= 24 ? s - 24 : s,
+                end: e >= 24 ? e - 24 : e,
+                cls: selectedColor,
+                label: name,
+                id: crypto.randomUUID(),
+            });
+            saveData(); closeModal(); render();
+        });
+
+        /* ═══════════════════════════════════════
+           INIT
+           ═══════════════════════════════════════ */
+        loadData();
+        render();
+    </script>
+</body>
+
+</html>

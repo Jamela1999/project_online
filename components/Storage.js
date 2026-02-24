@@ -1,9 +1,24 @@
+import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js';
+import { getAuth } from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js';
+
+let db = null;
+let syncTimeout = null;
+const SYNC_DELAY = 2000; // Wait 2 seconds after last change before syncing to cloud
+
 const Storage = {
-    // Save data to localStorage
+    // Initialize Firestore
+    initCloud: (firebaseApp) => {
+        db = getFirestore(firebaseApp);
+    },
+
+    // Save data to localStorage + schedule cloud sync
     save: (key, data) => {
         try {
             const serializedData = JSON.stringify(data);
             localStorage.setItem(key, serializedData);
+
+            // Schedule a debounced cloud sync
+            Storage._scheduleSync();
         } catch (error) {
             console.error('Error saving to localStorage:', error);
         }
@@ -70,11 +85,106 @@ const Storage = {
                 localStorage.setItem(key, JSON.stringify(jsonData[key]));
             });
 
+            // Sync imported data to cloud
+            Storage._syncNow();
+
             alert('Data restored successfully! The page will now reload.');
             window.location.reload();
         } catch (error) {
             console.error('Error importing data:', error);
             alert('Failed to import data. Please check the file format.');
+        }
+    },
+
+    // ---- Cloud Sync Methods ----
+
+    // Schedule a debounced sync (waits 2s after last change)
+    _scheduleSync: () => {
+        if (syncTimeout) clearTimeout(syncTimeout);
+        syncTimeout = setTimeout(() => {
+            Storage._syncNow();
+        }, SYNC_DELAY);
+    },
+
+    // Immediately sync all localStorage to Firestore
+    _syncNow: async () => {
+        const auth = getAuth();
+        if (!db || !auth.currentUser) return;
+
+        try {
+            const allData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                try {
+                    allData[key] = JSON.parse(localStorage.getItem(key));
+                } catch {
+                    allData[key] = localStorage.getItem(key);
+                }
+            }
+
+            const userDoc = doc(db, 'users', auth.currentUser.uid);
+            await setDoc(userDoc, {
+                data: allData,
+                lastUpdated: new Date().toISOString(),
+                email: auth.currentUser.email
+            });
+
+            // Dispatch event to update sync status in UI
+            window.dispatchEvent(new CustomEvent('cloud-sync-status', { detail: 'synced' }));
+            console.log('☁️ Data synced to cloud');
+        } catch (error) {
+            console.error('Error syncing to cloud:', error);
+            window.dispatchEvent(new CustomEvent('cloud-sync-status', { detail: 'error' }));
+        }
+    },
+
+    // Pull all data from Firestore into localStorage
+    syncFromCloud: async () => {
+        const auth = getAuth();
+        if (!db || !auth.currentUser) return false;
+
+        try {
+            const userDoc = doc(db, 'users', auth.currentUser.uid);
+            const snapshot = await getDoc(userDoc);
+
+            if (snapshot.exists()) {
+                const cloudData = snapshot.data().data;
+                const cloudKeys = Object.keys(cloudData);
+
+                if (cloudKeys.length > 0) {
+                    // Check if local has any data (besides app_settings)
+                    const localKeys = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        localKeys.push(localStorage.key(i));
+                    }
+                    const hasLocalData = localKeys.some(k => k.startsWith('daily_') || k.startsWith('monthly_') || k === 'yearly_data' || k === 'mymap_data');
+
+                    if (hasLocalData) {
+                        // Merge: cloud data fills in missing keys, doesn't overwrite existing
+                        cloudKeys.forEach(key => {
+                            if (!localStorage.getItem(key)) {
+                                localStorage.setItem(key, JSON.stringify(cloudData[key]));
+                            }
+                        });
+                    } else {
+                        // No local data — restore everything from cloud
+                        cloudKeys.forEach(key => {
+                            localStorage.setItem(key, JSON.stringify(cloudData[key]));
+                        });
+                    }
+
+                    console.log(`☁️ Synced ${cloudKeys.length} keys from cloud`);
+                    return true;
+                }
+            } else {
+                // No cloud data exists yet — push local data up
+                await Storage._syncNow();
+            }
+
+            return false;
+        } catch (error) {
+            console.error('Error syncing from cloud:', error);
+            return false;
         }
     }
 };
