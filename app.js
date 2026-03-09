@@ -5,7 +5,7 @@ import MyMap from './components/MyMap.js?v=5';
 import YearlyPlan from './components/YearlyPlan.js?v=5';
 import MonthlyPlan from './components/MonthlyPlan.js?v=5';
 import DailyReport from './components/DailyReport.js?v=5';
-import Storage from './components/Storage.js?v=12';
+import Storage from './components/Storage.js?v=13';
 
 // Initialize Firebase
 const firebaseApp = initializeApp(firebaseConfig);
@@ -93,11 +93,10 @@ window.addEventListener('cloud-sync-status', (e) => {
 
     if (e.detail === 'synced') {
         syncText.textContent = 'Synced';
-        syncStatus.className = 'flex items-center text-xs text-green-500 font-medium';
+        syncStatus.className = 'flex items-center text-xs text-green-500';
         setTimeout(() => {
             syncStatus.className = 'flex items-center text-xs text-gray-400';
-            syncText.textContent = 'Synced';
-        }, 5000);
+        }, 3000);
     } else if (e.detail === 'error') {
         syncText.textContent = 'Sync error';
         syncStatus.className = 'flex items-center text-xs text-red-500 font-medium';
