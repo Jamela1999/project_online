@@ -115,6 +115,7 @@ const Storage = {
     },
 
     // Immediately sync all localStorage to Firestore
+    // NOTE: We store data as a JSON string to avoid Firestore's "nested arrays not supported" limitation.
     _syncNow: async () => {
         const auth = getAuth();
         if (!db || !auth.currentUser) return;
@@ -123,16 +124,12 @@ const Storage = {
             const allData = {};
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                try {
-                    allData[key] = JSON.parse(localStorage.getItem(key));
-                } catch {
-                    allData[key] = localStorage.getItem(key);
-                }
+                allData[key] = localStorage.getItem(key);
             }
 
             const userDoc = doc(db, 'users', auth.currentUser.uid);
             await setDoc(userDoc, {
-                data: allData,
+                dataJson: JSON.stringify(allData),
                 lastUpdated: new Date().toISOString(),
                 email: auth.currentUser.email
             });
@@ -147,6 +144,7 @@ const Storage = {
     },
 
     // Pull all data from Firestore into localStorage
+    // Reads dataJson (new string format) with fallback to data (old object format)
     syncFromCloud: async (forceOverwrite = false) => {
         const auth = getAuth();
         if (!db || !auth.currentUser) return false;
@@ -157,47 +155,59 @@ const Storage = {
             const snapshot = await getDoc(userDoc);
 
             if (snapshot.exists()) {
-                const cloudData = snapshot.data().data;
-                const cloudKeys = Object.keys(cloudData);
+                const docData = snapshot.data();
+                let cloudData;
 
-                if (cloudKeys.length > 0) {
-                    if (forceOverwrite) {
-                        localStorage.clear();
-                        cloudKeys.forEach(key => {
-                            localStorage.setItem(key, JSON.stringify(cloudData[key]));
-                        });
-                        console.log('☁️ Forced overwrite from cloud');
-                        return true;
-                    }
+                // Support new JSON string format, with fallback to old object format
+                if (docData.dataJson) {
+                    cloudData = JSON.parse(docData.dataJson);
+                } else if (docData.data) {
+                    // Old format: data was stored as a nested object
+                    cloudData = {};
+                    Object.keys(docData.data).forEach(key => {
+                        cloudData[key] = JSON.stringify(docData.data[key]);
+                    });
+                }
 
-                    // Check if local has any data (besides app_settings)
-                    const localKeys = [];
-                    for (let i = 0; i < localStorage.length; i++) {
-                        localKeys.push(localStorage.key(i));
-                    }
-                    const hasLocalData = localKeys.some(k => k.startsWith('daily_') || k.startsWith('monthly_') || k === 'yearly_data' || k === 'mymap_data' || k === 'schedule_4week_v3' || k === 'schedule_app_v6');
+                if (cloudData) {
+                    const cloudKeys = Object.keys(cloudData);
 
-                    if (hasLocalData) {
-                        // Merge: cloud data fills in missing keys
-                        let importedCount = 0;
-                        cloudKeys.forEach(key => {
-                            if (!localStorage.getItem(key)) {
-                                localStorage.setItem(key, JSON.stringify(cloudData[key]));
-                                importedCount++;
-                            }
-                        });
-                        console.log(`☁️ Synced ${importedCount} new keys from cloud`);
+                    if (cloudKeys.length > 0) {
+                        if (forceOverwrite) {
+                            localStorage.clear();
+                            cloudKeys.forEach(key => {
+                                localStorage.setItem(key, cloudData[key]);
+                            });
+                            console.log('☁️ Forced overwrite from cloud');
+                            return true;
+                        }
 
-                        // If we have local data but cloud has something too, we might want to alert the user if they vary significantly.
-                        // For now, we trust the merge or return true if anything new was found.
-                        return importedCount > 0;
-                    } else {
-                        // No local data — restore everything from cloud
-                        cloudKeys.forEach(key => {
-                            localStorage.setItem(key, JSON.stringify(cloudData[key]));
-                        });
-                        console.log(`☁️ Restored ${cloudKeys.length} keys from cloud`);
-                        return true;
+                        // Check if local has any meaningful data
+                        const localKeys = [];
+                        for (let i = 0; i < localStorage.length; i++) {
+                            localKeys.push(localStorage.key(i));
+                        }
+                        const hasLocalData = localKeys.some(k => k.startsWith('daily_') || k.startsWith('monthly_') || k === 'yearly_data' || k === 'mymap_data' || k === 'schedule_4week_v3' || k === 'schedule_app_v6');
+
+                        if (hasLocalData) {
+                            // Merge: cloud data fills in missing keys
+                            let importedCount = 0;
+                            cloudKeys.forEach(key => {
+                                if (!localStorage.getItem(key)) {
+                                    localStorage.setItem(key, cloudData[key]);
+                                    importedCount++;
+                                }
+                            });
+                            console.log(`☁️ Synced ${importedCount} new keys from cloud`);
+                            return importedCount > 0;
+                        } else {
+                            // No local data — restore everything from cloud
+                            cloudKeys.forEach(key => {
+                                localStorage.setItem(key, cloudData[key]);
+                            });
+                            console.log(`☁️ Restored ${cloudKeys.length} keys from cloud`);
+                            return true;
+                        }
                     }
                 }
             } else {
