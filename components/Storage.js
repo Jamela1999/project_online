@@ -108,6 +108,7 @@ const Storage = {
 
     // Schedule a debounced sync (waits 2s after last change)
     _scheduleSync: () => {
+        window.dispatchEvent(new CustomEvent('cloud-sync-status', { detail: 'syncing' }));
         if (syncTimeout) clearTimeout(syncTimeout);
         syncTimeout = setTimeout(() => {
             Storage._syncNow();

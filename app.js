@@ -5,7 +5,7 @@ import MyMap from './components/MyMap.js?v=5';
 import YearlyPlan from './components/YearlyPlan.js?v=5';
 import MonthlyPlan from './components/MonthlyPlan.js?v=5';
 import DailyReport from './components/DailyReport.js?v=5';
-import Storage from './components/Storage.js?v=13';
+import Storage from './components/Storage.js?v=14';
 
 // Initialize Firebase
 const firebaseApp = initializeApp(firebaseConfig);
@@ -86,15 +86,21 @@ function renderAuthSection() {
 }
 
 // ---- Cloud Sync Status Listener ----
+let syncColorTimeout;
 window.addEventListener('cloud-sync-status', (e) => {
     const syncText = document.getElementById('sync-text');
     const syncStatus = document.getElementById('sync-status');
     if (!syncText || !syncStatus) return;
 
-    if (e.detail === 'synced') {
+    if (syncColorTimeout) clearTimeout(syncColorTimeout);
+
+    if (e.detail === 'syncing') {
+        syncText.textContent = 'Syncing...';
+        syncStatus.className = 'flex items-center text-xs text-blue-400';
+    } else if (e.detail === 'synced') {
         syncText.textContent = 'Synced';
         syncStatus.className = 'flex items-center text-xs text-green-500';
-        setTimeout(() => {
+        syncColorTimeout = setTimeout(() => {
             syncStatus.className = 'flex items-center text-xs text-gray-400';
         }, 3000);
     } else if (e.detail === 'error') {
@@ -102,6 +108,7 @@ window.addEventListener('cloud-sync-status', (e) => {
         syncStatus.className = 'flex items-center text-xs text-red-500 font-medium';
     }
 });
+
 
 // ---- Auth State Observer ----
 onAuthStateChanged(auth, async (user) => {

@@ -426,6 +426,29 @@ function renderTagTable() {
     });
 }
 
+// ---- Cloud Sync Status Listener ----
+let schedSyncColorTimeout;
+window.addEventListener('cloud-sync-status', (e) => {
+    const sDot = document.getElementById('sync-dot');
+    const sTxt = document.getElementById('sync-text');
+    if (!sDot || !sTxt) return;
+
+    if (schedSyncColorTimeout) clearTimeout(schedSyncColorTimeout);
+
+    if (e.detail === 'synced') {
+        sTxt.textContent = 'Synced';
+        sDot.style.background = '#4CAF50'; // Green
+        schedSyncColorTimeout = setTimeout(() => {
+            sDot.style.background = '#dcdcdc'; // Neutral
+        }, 3000);
+    } else if (e.detail === 'error') {
+        sTxt.textContent = 'Sync error';
+        sDot.style.background = '#f44336'; // Red
+    } else if (e.detail === 'syncing') {
+        sTxt.textContent = 'Syncing...';
+        sDot.style.background = '#2196F3'; // Blue
+    }
+});
 /* Add new category */
 document.getElementById('addCatBtn').addEventListener('click', () => {
     const name = document.getElementById('newCatName').value.trim();
